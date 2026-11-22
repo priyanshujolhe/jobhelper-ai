@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Portfolio Generator — JobHelper AI{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+  <div>
+    <h3 class="fw-bold mb-1"><i class="bi bi-window-fullscreen text-primary me-2"></i>Portfolio Website Generator</h3>
+    <p class="text-muted small mb-0">Transform your resume into a personalized developer portfolio website ready for GitHub Pages or Netlify.</p>
+  </div>
+</div>
+
+<form method="POST" action="{{ url_for('portfolio.download_zip') }}" id="portfolioForm">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <div class="row g-4">
+    <!-- Left Column: Form & Theme Settings -->
+    <div class="col-lg-5">
+      <!-- Theme Selection Card -->
+      <div class="card p-3 mb-4">
+        <h6 class="fw-bold mb-3"><i class="bi bi-palette text-primary me-2"></i>Select Aesthetic Theme</h6>
+        <div class="row g-2">
+          <div class="col-4">
+            <input type="radio" class="btn-check" name="theme" id="themeDark" value="dark" checked onchange="updateLivePreview()">
+            <label class="btn btn-outline-dark w-100 p-2 text-center small h-100" for="themeDark">
+              <i class="bi bi-moon-stars d-block fs-5 mb-1"></i> Dark Tech
+            </label>
+          </div>
+          <div class="col-4">
+            <input type="radio" class="btn-check" name="theme" id="themeLight" value="light" onchange="updateLivePreview()">
+            <label class="btn btn-outline-secondary w-100 p-2 text-center small h-100" for="themeLight">
+              <i class="bi bi-sun d-block fs-5 mb-1"></i> Clean Light
+            </label>
+          </div>
+          <div class="col-4">
+            <input type="radio" class="btn-check" name="theme" id="themeGradient" value="gradient" onchange="updateLivePreview()">
+            <label class="btn btn-outline-primary w-100 p-2 text-center small h-100" for="themeGradient">
+              <i class="bi bi-magic d-block fs-5 mb-1"></i> Gradient
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Fields Card -->
+      <div class="card p-3 mb-4">
+        <h6 class="fw-bold mb-3"><i class="bi bi-person-lines-fill text-primary me-2"></i>Portfolio Content</h6>
+        
+        <div class="row g-2 mb-2">
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Display Name</label>
+            <input type="text" name="full_name" class="form-control form-control-sm" value="{{ data.full_name }}" oninput="debouncePreview()">
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Hero Headline</label>
+            <input type="text" name="headline" class="form-control form-control-sm" value="{{ data.headline }}" oninput="debouncePreview()">
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">About / Bio</label>
+            <textarea name="bio" class="form-control form-control-sm" rows="3" oninput="debouncePreview()">{{ data.bio }}</textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Contact Email</label>
+            <input type="email" name="email" class="form-control form-control-sm" value="{{ data.email }}" oninput="debouncePreview()">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Location</label>
+            <input type="text" name="location" class="form-control form-control-sm" value="{{ data.location }}" oninput="debouncePreview()">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">GitHub URL</label>
+            <input type="text" name="github" class="form-control form-control-sm" value="{{ data.github }}" oninput="debouncePreview()">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">LinkedIn URL</label>
+            <input type="text" name="linkedin" class="form-control form-control-sm" value="{{ data.linkedin }}" oninput="debouncePreview()">
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Skills (Comma-separated)</label>
+            <textarea name="skills" class="form-control form-control-sm" rows="2" oninput="debouncePreview()">{{ data.skills }}</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Card -->
+      <div class="card p-3 shadow-sm">
+        <button type="submit" class="btn btn-primary w-100 fw-semibold py-2 mb-2">
+          <i class="bi bi-file-earmark-zip me-2"></i>Download Portfolio (.ZIP)
+        </button>
+        <div class="text-muted small text-center">
+          Includes <code>index.html</code>, <code>style.css</code>, <code>script.js</code> & deployment guide.
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Live Sandboxed Iframe Preview -->
+    <div class="col-lg-7">
+      <div class="card h-100 shadow-sm border overflow-hidden">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-2 px-3">
+          <div class="small fw-semibold text-secondary">
+            <i class="bi bi-display me-1"></i> Live Interactive Preview
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="updateLivePreview()">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+          </button>
+        </div>
+        <div class="card-body p-0" style="min-height: 600px;">
+          <iframe id="portfolioPreviewFrame" style="width: 100%; height: 600px; border: none;" title="Portfolio Live Preview"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  let debounceTimeout = null;
+
+  function debouncePreview() {
+    clearTimeout(debounceTimeout);
+    debounceTimeout = setTimeout(updateLivePreview, 400);
+  }
+
+  function updateLivePreview() {
+    const form = document.getElementById("portfolioForm");
+    const formData = new FormData(form);
+    const iframe = document.getElementById("portfolioPreviewFrame");
+
+    fetch("{{ url_for('portfolio.preview') }}", {
+      method: "POST",
+      body: formData
+    })
+    .then(response => response.text())
+    .then(html => {
+      const doc = iframe.contentWindow.document;
+      doc.open();
+      doc.write(html);
+      doc.close();
+    })
+    .catch(err => console.error("Error refreshing preview:", err));
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    updateLivePreview();
+  });
+</script>
+{% endblock %}

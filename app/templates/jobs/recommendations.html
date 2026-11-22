@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Job Recommendations — JobHelper AI{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+  <div>
+    <h3 class="fw-bold mb-1"><i class="bi bi-stars text-warning me-2"></i>AI Job Recommendations</h3>
+    <p class="text-muted small mb-0">Personalized positions ranked by compatibility with your resume's skills, experience, and keywords.</p>
+  </div>
+</div>
+
+<!-- Resume Selector & Filters Form -->
+<div class="card p-3 mb-4 bg-light border">
+  <form method="GET" action="{{ url_for('jobs.recommendations') }}">
+    <div class="row g-2 mb-2">
+      <div class="col-md-6">
+        <label class="form-label small fw-semibold">Evaluating Against Resume:</label>
+        <select name="resume_id" class="form-select form-select-sm" onchange="this.form.submit()">
+          {% for r in resumes %}
+          <option value="{{ r.id }}" {{ 'selected' if selected_resume.id == r.id }}>
+            {{ r.original_filename }} ({{ r.extracted_information.get('skills', [])|length }} skills)
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Job Title Keyword:</label>
+        <input type="text" name="title" class="form-control form-control-sm" placeholder="e.g. Python, ML" value="{{ title_filter }}">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Location:</label>
+        <input type="text" name="location" class="form-control form-control-sm" placeholder="e.g. Remote, Austin" value="{{ loc_filter }}">
+      </div>
+    </div>
+
+    <div class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Employment Type:</label>
+        <select name="employment_type" class="form-select form-select-sm">
+          <option value="">All Types</option>
+          <option value="Full-time" {{ 'selected' if emp_filter == 'Full-time' }}>Full-time</option>
+          <option value="Part-time" {{ 'selected' if emp_filter == 'Part-time' }}>Part-time</option>
+          <option value="Contract" {{ 'selected' if emp_filter == 'Contract' }}>Contract</option>
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Minimum Compatibility:</label>
+        <select name="min_score" class="form-select form-select-sm">
+          <option value="0" {{ 'selected' if min_score == 0 }}>All Matches (0%+)</option>
+          <option value="50" {{ 'selected' if min_score == 50 }}>Moderate+ (50%+)</option>
+          <option value="65" {{ 'selected' if min_score == 65 }}>Good+ (65%+)</option>
+          <option value="80" {{ 'selected' if min_score == 80 }}>Excellent (80%+)</option>
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <button type="submit" class="btn btn-primary btn-sm w-100">
+          <i class="bi bi-funnel me-1"></i> Apply Filters
+        </button>
+      </div>
+
+      <div class="col-md-3">
+        <a href="{{ url_for('jobs.recommendations') }}" class="btn btn-outline-secondary btn-sm w-100">Reset</a>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Recommendations List -->
+<div class="row g-3">
+  {% for rec in recommendations %}
+  <div class="col-12">
+    <div class="card p-4 border">
+      <div class="row align-items-center g-3">
+        <div class="col-lg-8">
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <h5 class="fw-bold mb-0">
+              <a href="{{ url_for('jobs.view_job', job_id=rec.job.id) }}" class="text-dark text-decoration-none">
+                {{ rec.job.title }}
+              </a>
+            </h5>
+            <span class="badge bg-{{ rec.category_badge }}">{{ rec.match_category }}</span>
+          </div>
+          
+          <div class="text-muted small mb-3">
+            <span class="fw-semibold text-secondary">{{ rec.job.company }}</span> &bull; 
+            <i class="bi bi-geo-alt me-1"></i>{{ rec.job.location or 'Remote' }} &bull; 
+            <span class="badge bg-light text-muted border">{{ rec.job.employment_type }}</span> &bull;
+            <span><i class="bi bi-briefcase me-1"></i>{{ rec.job.experience }}</span>
+          </div>
+
+          <!-- Matching and Missing Skills -->
+          <div class="row g-2 small">
+            <div class="col-md-6">
+              <span class="fw-semibold text-success"><i class="bi bi-check-circle me-1"></i>Matching Skills ({{ rec.matching_skills|length }}):</span>
+              <div class="mt-1">
+                {% for s in rec.matching_skills %}
+                <span class="skill-badge matched">{{ s }}</span>
+                {% else %}
+                <span class="text-muted">None detected</span>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <span class="fw-semibold text-danger"><i class="bi bi-exclamation-triangle me-1"></i>Missing Skills ({{ rec.missing_skills|length }}):</span>
+              <div class="mt-1">
+                {% for s in rec.missing_skills %}
+                <span class="skill-badge missing">{{ s }}</span>
+                {% else %}
+                <span class="text-success">All required skills met!</span>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4 text-lg-end border-start-lg pt-3 pt-lg-0">
+          <div class="mb-2">
+            <div class="text-muted small">Compatibility Score</div>
+            <div class="display-6 fw-bold {% if rec.overall_score >= 80 %}text-success{% elif rec.overall_score >= 60 %}text-primary{% elif rec.overall_score >= 45 %}text-warning{% else %}text-danger{% endif %}">
+              {{ rec.overall_score|round(0)|int }}%
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-lg-end gap-2">
+            <form method="POST" action="{{ url_for('jobs.toggle_save_job', job_id=rec.job.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-outline-warning" title="Bookmark">
+                <i class="bi bi-bookmark"></i>
+              </button>
+            </form>
+
+            <form method="POST" action="{{ url_for('jobs.match') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="resume_id" value="{{ selected_resume.id }}">
+              <input type="hidden" name="job_source" value="existing">
+              <input type="hidden" name="job_id" value="{{ rec.job.id }}">
+              <button type="submit" class="btn btn-sm btn-primary">
+                <i class="bi bi-bullseye me-1"></i> Deep Match Report
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12 text-center py-5 text-muted">
+    <i class="bi bi-stars fs-1 opacity-50 mb-2"></i>
+    <p class="mb-0">No job matches found meeting your filter criteria.</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

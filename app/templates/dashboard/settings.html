@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Settings — JobHelper AI{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card p-4 mb-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-sliders me-2 text-primary"></i>Application Settings & Status</h5>
+      
+      <div class="list-group list-group-flush mb-4">
+        <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+          <div>
+            <div class="fw-semibold">Authentication Mode</div>
+            <div class="text-muted small">Real OTP Verification via SMTP (Salted PBKDF2 Hashing)</div>
+          </div>
+          <span class="badge bg-success-subtle text-success">Active</span>
+        </div>
+
+        <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+          <div>
+            <div class="fw-semibold">Database Engine</div>
+            <div class="text-muted small">SQLAlchemy ORM (SQLite / PostgreSQL Compatible)</div>
+          </div>
+          <span class="badge bg-primary-subtle text-primary">Connected</span>
+        </div>
+
+        <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+          <div>
+            <div class="fw-semibold">NLP & Feature Vectorizer</div>
+            <div class="text-muted small">Scikit-learn TfidfVectorizer (5000 max features, 1-2 ngrams)</div>
+          </div>
+          <span class="badge bg-info-subtle text-info">Operational</span>
+        </div>
+
+        <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+          <div>
+            <div class="fw-semibold">Max Resume Upload Size</div>
+            <div class="text-muted small">5 MB (PDF and DOCX formats accepted)</div>
+          </div>
+          <span class="badge bg-secondary-subtle text-secondary">5.0 MB</span>
+        </div>
+      </div>
+
+      <h6 class="fw-bold text-secondary mb-2">Matching Weights Configuration</h6>
+      <p class="text-muted small mb-3">JobHelper utilizes an explainable multi-component matching formula:</p>
+      
+      <div class="row g-2 text-center small font-monospace">
+        <div class="col-3">
+          <div class="p-2 border rounded bg-light">
+            <div class="fw-bold text-primary">50%</div>
+            <div class="text-muted">Skills</div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="p-2 border rounded bg-light">
+            <div class="fw-bold text-info">25%</div>
+            <div class="text-muted">TF-IDF</div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="p-2 border rounded bg-light">
+            <div class="fw-bold text-success">15%</div>
+            <div class="text-muted">Experience</div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="p-2 border rounded bg-light">
+            <div class="fw-bold text-warning">10%</div>
+            <div class="text-muted">Education</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

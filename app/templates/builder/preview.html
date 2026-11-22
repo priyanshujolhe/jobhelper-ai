@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ data.full_name or 'Resume' }} — Preview</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    body {
+      background-color: #f1f5f9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding: 30px 10px;
+    }
+    .resume-sheet {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 48px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      border-radius: 4px;
+      color: #1e293b;
+    }
+    .print-bar {
+      max-width: 800px;
+      margin: 0 auto 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+      }
+      .print-bar {
+        display: none !important;
+      }
+      .resume-sheet {
+        box-shadow: none;
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="print-bar">
+    <button class="btn btn-sm btn-outline-secondary" onclick="window.close()">
+      <i class="bi bi-x-lg me-1"></i> Close Preview
+    </button>
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
+        <i class="bi bi-printer me-1"></i> Print
+      </button>
+      <form method="POST" action="{{ url_for('builder.download_pdf') }}" class="d-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="template" value="{{ data.template }}">
+        <input type="hidden" name="full_name" value="{{ data.full_name }}">
+        <input type="hidden" name="headline" value="{{ data.headline }}">
+        <input type="hidden" name="email" value="{{ data.email }}">
+        <input type="hidden" name="phone" value="{{ data.phone }}">
+        <input type="hidden" name="location" value="{{ data.location }}">
+        <input type="hidden" name="linkedin" value="{{ data.linkedin }}">
+        <input type="hidden" name="github" value="{{ data.github }}">
+        <input type="hidden" name="summary" value="{{ data.summary }}">
+        <input type="hidden" name="skills" value="{{ data.skills|join(', ') }}">
+        {% for exp in data.experience_items %}
+        <input type="hidden" name="exp_role[]" value="{{ exp.role }}">
+        <input type="hidden" name="exp_company[]" value="{{ exp.company }}">
+        <input type="hidden" name="exp_duration[]" value="{{ exp.duration }}">
+        <input type="hidden" name="exp_description[]" value="{{ exp.description }}">
+        {% endfor %}
+        {% for proj in data.project_items %}
+        <input type="hidden" name="proj_title[]" value="{{ proj.title }}">
+        <input type="hidden" name="proj_tech[]" value="{{ proj.tech_stack }}">
+        <input type="hidden" name="proj_description[]" value="{{ proj.description }}">
+        {% endfor %}
+        {% for edu in data.education_items %}
+        <input type="hidden" name="edu_degree[]" value="{{ edu.degree }}">
+        <input type="hidden" name="edu_institution[]" value="{{ edu.institution }}">
+        <input type="hidden" name="edu_year[]" value="{{ edu.year }}">
+        {% endfor %}
+        <button type="submit" class="btn btn-sm btn-primary">
+          <i class="bi bi-download me-1"></i> Download Vector PDF
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="resume-sheet">
+    <!-- Header -->
+    <div class="mb-4 text-{{ 'center' if data.template == 'classic' else 'start' }}">
+      <h1 class="h2 fw-bold mb-1 {% if data.template == 'modern' %}text-primary{% endif %}">{{ data.full_name or 'Your Name' }}</h1>
+      {% if data.headline %}
+      <div class="text-secondary fw-semibold mb-2">{{ data.headline }}</div>
+      {% endif %}
+      <div class="small text-muted">
+        {% if data.email %}{{ data.email }}{% endif %}
+        {% if data.phone %} &bull; {{ data.phone }}{% endif %}
+        {% if data.location %} &bull; {{ data.location }}{% endif %}
+        {% if data.linkedin %} &bull; {{ data.linkedin }}{% endif %}
+        {% if data.github %} &bull; {{ data.github }}{% endif %}
+      </div>
+    </div>
+    <hr class="my-3">
+
+    <!-- Summary -->
+    {% if data.summary %}
+    <div class="mb-4">
+      <h6 class="fw-bold text-uppercase {% if data.template == 'modern' %}text-primary{% endif %} mb-2">Professional Summary</h6>
+      <p class="small text-secondary mb-0">{{ data.summary }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Skills -->
+    {% if data.skills %}
+    <div class="mb-4">
+      <h6 class="fw-bold text-uppercase {% if data.template == 'modern' %}text-primary{% endif %} mb-2">Technical Skills & Competencies</h6>
+      <p class="small text-secondary mb-0">{{ data.skills|join('  •  ') }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Experience -->
+    {% if data.experience_items %}
+    <div class="mb-4">
+      <h6 class="fw-bold text-uppercase {% if data.template == 'modern' %}text-primary{% endif %} mb-3">Work Experience</h6>
+      {% for exp in data.experience_items %}
+      <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-baseline">
+          <div class="fw-bold text-dark">{{ exp.role }} <span class="fw-normal text-secondary">— {{ exp.company }}</span></div>
+          <span class="small text-muted">{{ exp.duration }}</span>
+        </div>
+        {% if exp.description %}
+        <div class="small text-secondary mt-1" style="white-space: pre-line;">{{ exp.description }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Projects -->
+    {% if data.project_items %}
+    <div class="mb-4">
+      <h6 class="fw-bold text-uppercase {% if data.template == 'modern' %}text-primary{% endif %} mb-3">Key Projects</h6>
+      {% for proj in data.project_items %}
+      <div class="mb-3">
+        <div class="fw-bold text-dark">{{ proj.title }} {% if proj.tech_stack %}<span class="small text-muted fw-normal">({{ proj.tech_stack }})</span>{% endif %}</div>
+        {% if proj.description %}
+        <div class="small text-secondary mt-1">{{ proj.description }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Education -->
+    {% if data.education_items %}
+    <div>
+      <h6 class="fw-bold text-uppercase {% if data.template == 'modern' %}text-primary{% endif %} mb-3">Education</h6>
+      {% for edu in data.education_items %}
+      <div class="d-flex justify-content-between align-items-baseline mb-2">
+        <div class="fw-bold text-dark">{{ edu.degree }} <span class="fw-normal text-secondary">— {{ edu.institution }}</span></div>
+        <span class="small text-muted">{{ edu.year }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+</body>
+</html>

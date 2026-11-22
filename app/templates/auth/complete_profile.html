@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Complete Your Profile — JobHelper AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      
+      <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5 bg-white">
+        <div class="text-center mb-4">
+          <div class="rounded-circle bg-success-subtle text-success mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 54px; height: 54px;">
+            <i class="bi bi-person-check-fill fs-3"></i>
+          </div>
+          <h3 class="fw-bold mb-1">Set Up Your Profile</h3>
+          <p class="text-muted small">Help us personalize your resume analyses and job match scores.</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('auth.complete_profile') }}">
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            <label for="full_name" class="form-label small fw-semibold text-secondary">Full Name *</label>
+            {{ form.full_name(class="form-control") }}
+            {% for error in form.full_name.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label for="headline" class="form-label small fw-semibold text-secondary">Professional Headline</label>
+            {{ form.headline(class="form-control") }}
+            <div class="form-text small">e.g. Full-Stack Developer | Data Scientist | Computer Science Graduate</div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="phone" class="form-label small fw-semibold text-secondary">Phone Number</label>
+              {{ form.phone(class="form-control") }}
+            </div>
+            <div class="col-md-6">
+              <label for="location" class="form-label small fw-semibold text-secondary">Location</label>
+              {{ form.location(class="form-control") }}
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label for="bio" class="form-label small fw-semibold text-secondary">Bio / Career Objective</label>
+            {{ form.bio(class="form-control") }}
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary py-2 fw-semibold">
+              <i class="bi bi-arrow-right-circle-fill me-2"></i>Save & Launch Dashboard
+            </button>
+          </div>
+        </form>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In — JobHelper AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center align-items-center min-vh-75">
+    <div class="col-md-10 col-lg-8 col-xl-7">
+      
+      {% if not smtp_ready %}
+      <div class="alert alert-warning border-warning shadow-sm mb-4">
+        <div class="d-flex align-items-start">
+          <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-warning"></i>
+          <div>
+            <h6 class="alert-heading fw-bold mb-1">SMTP Email Not Yet Configured</h6>
+            <p class="small mb-2 text-dark">
+              JobHelper utilizes <strong>real email OTP authentication</strong>. To deliver one-time codes to real inboxes, please enter your SMTP credentials in your <code>.env</code> file (e.g. Gmail SMTP with an App Password).
+            </p>
+            <div class="bg-light p-2 rounded small font-monospace text-muted">
+              SMTP_HOST=smtp.gmail.com<br>
+              SMTP_PORT=587<br>
+              SMTP_USERNAME=your-email@gmail.com<br>
+              SMTP_PASSWORD=your-app-password
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="row g-0">
+          <!-- Left Decorative Panel -->
+          <div class="col-md-5 bg-primary text-white p-4 p-lg-5 d-flex flex-column justify-content-between" style="background: linear-gradient(145deg, #0f172a 0%, #1e3a8a 100%) !important;">
+            <div>
+              <div class="navbar-brand text-white mb-4 d-inline-block">
+                <i class="bi bi-briefcase-fill text-info me-2"></i>
+                <span class="text-white">Job</span>Helper <span class="badge bg-info text-dark ms-1">AI</span>
+              </div>
+              <h4 class="fw-bold mb-2">Welcome Back!</h4>
+              <p class="text-white-50 small">
+                Sign in to analyze your resume, compute job compatibility scores, and discover tailored career opportunities.
+              </p>
+            </div>
+
+            <div class="border-top border-secondary pt-3 mt-4 text-white-50 small">
+              <div class="d-flex align-items-center mb-2">
+                <i class="bi bi-shield-lock-fill text-info me-2"></i> Passwordless OTP Authentication
+              </div>
+              <div class="d-flex align-items-center">
+                <i class="bi bi-lightning-charge-fill text-warning me-2"></i> 5-Minute One-Time Passcodes
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Form Panel -->
+          <div class="col-md-7 p-4 p-lg-5 bg-white">
+            <h4 class="fw-bold text-dark mb-1">Sign In</h4>
+            <p class="text-muted small mb-4">Enter your email address to receive a secure 6-digit login code.</p>
+
+            <form method="POST" action="{{ url_for('auth.login') }}" id="loginForm">
+              {{ form.hidden_tag() }}
+
+              <div class="mb-4">
+                <label for="email" class="form-label fw-semibold small text-secondary">Email Address</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+                  {{ form.email(class="form-control border-start-0 py-2", placeholder="you@university.edu or you@gmail.com") }}
+                </div>
+                {% for error in form.email.errors %}
+                  <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="d-grid mb-3">
+                <button type="submit" class="btn btn-primary py-2 fw-semibold" id="submitBtn">
+                  <i class="bi bi-send-fill me-2"></i>Send Verification Code
+                </button>
+              </div>
+
+              <div class="p-3 bg-light rounded-3 border text-center small text-muted">
+                <i class="bi bi-info-circle me-1 text-primary"></i>
+                No password required. We send a single-use verification code to your real inbox.
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('loginForm').addEventListener('submit', function() {
+    var btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Dispatching Code...';
+  });
+</script>
+{% endblock %}

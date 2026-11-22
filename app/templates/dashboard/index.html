@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — JobHelper AI{% endblock %}
+
+{% block content %}
+<!-- Welcome Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+  <div>
+    <h3 class="fw-bold mb-1">
+      Welcome back, {{ current_user.name or current_user.email.split('@')[0] }} 👋
+    </h3>
+    <p class="text-muted small mb-0">
+      Here is your AI career intelligence overview, resume metrics, and job compatibility insights.
+    </p>
+  </div>
+  <div class="d-flex gap-2 mt-3 mt-md-0">
+    <a href="{{ url_for('resume.upload') }}" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-cloud-arrow-up me-1"></i> Upload Resume
+    </a>
+    <a href="{{ url_for('jobs.match') }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-bullseye me-1"></i> New Job Match
+    </a>
+  </div>
+</div>
+
+<!-- Stat Cards Grid -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card d-flex align-items-center justify-content-between">
+      <div>
+        <div class="stat-label mb-1">Resumes Analyzed</div>
+        <div class="stat-value">{{ resumes_count }}</div>
+        <div class="small text-muted mt-1"><i class="bi bi-file-earmark-text text-primary me-1"></i>Stored in DB</div>
+      </div>
+      <div class="stat-icon bg-primary-subtle text-primary">
+        <i class="bi bi-file-earmark-pdf"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card d-flex align-items-center justify-content-between">
+      <div>
+        <div class="stat-label mb-1">Average Match Score</div>
+        <div class="stat-value">{{ avg_match_score }}<span style="font-size: 1.1rem;">%</span></div>
+        <div class="small text-muted mt-1">
+          {% if avg_match_score >= 75 %}
+            <span class="text-success"><i class="bi bi-graph-up-arrow me-1"></i>High Alignment</span>
+          {% elif avg_match_score > 0 %}
+            <span class="text-warning"><i class="bi bi-dash me-1"></i>Moderate Fit</span>
+          {% else %}
+            <span>No analyses yet</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="stat-icon bg-success-subtle text-success">
+        <i class="bi bi-speedometer"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card d-flex align-items-center justify-content-between">
+      <div>
+        <div class="stat-label mb-1">Analyses Run</div>
+        <div class="stat-value">{{ analyses_count }}</div>
+        <div class="small text-muted mt-1"><i class="bi bi-cpu text-info me-1"></i>TF-IDF & NLP Models</div>
+      </div>
+      <div class="stat-icon bg-info-subtle text-info">
+        <i class="bi bi-bullseye"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card d-flex align-items-center justify-content-between">
+      <div>
+        <div class="stat-label mb-1">Unique Skills Found</div>
+        <div class="stat-value">{{ skills_count }}</div>
+        <div class="small text-muted mt-1"><i class="bi bi-tags text-warning me-1"></i>Taxonomy Extracted</div>
+      </div>
+      <div class="stat-icon bg-warning-subtle text-warning">
+        <i class="bi bi-tools"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Middle Section: Chart & Resume Tracker -->
+<div class="row g-4 mb-4">
+  <!-- Skill Distribution Chart -->
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-bar-chart-fill text-primary me-2"></i>Skill Category Distribution</span>
+        <span class="badge bg-light text-muted border">Real Data</span>
+      </div>
+      <div class="card-body">
+        {% if skills_count > 0 %}
+        <div style="height: 260px;">
+          <canvas id="skillCategoryChart"></canvas>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-pie-chart fs-1 opacity-50 mb-2"></i>
+          <p class="mb-2">No skills indexed yet.</p>
+          <a href="{{ url_for('resume.upload') }}" class="btn btn-sm btn-outline-primary">Upload Resume to Extract Skills</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Resume & Quality Tracker -->
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-shield-check text-success me-2"></i>Resume Quality Status</span>
+        {% if latest_resume %}
+        <a href="{{ url_for('resume.quality', resume_id=latest_resume.id) }}" class="small text-decoration-none">Full Audit &rarr;</a>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        {% if latest_resume %}
+        <div class="d-flex align-items-center justify-content-between mb-3 p-3 bg-light rounded-3 border">
+          <div>
+            <div class="fw-bold text-dark text-truncate" style="max-width: 180px;">{{ latest_resume.original_filename }}</div>
+            <div class="text-muted small">Uploaded {{ latest_resume.uploaded_at.strftime('%b %d, %Y') }}</div>
+          </div>
+          <span class="badge bg-primary fs-6">{{ latest_resume.quality_score|round(0)|int }}/100</span>
+        </div>
+
+        <div class="mb-3">
+          <div class="d-flex justify-content-between small mb-1">
+            <span class="text-secondary">Resume Quality Score</span>
+            <span class="fw-bold">{{ latest_resume.quality_score|round(1) }}%</span>
+          </div>
+          <div class="progress" style="height: 8px;">
+            <div class="progress-bar {% if latest_resume.quality_score >= 80 %}bg-success{% elif latest_resume.quality_score >= 60 %}bg-primary{% else %}bg-warning{% endif %}" 
+                 style="width: {{ latest_resume.quality_score }}%;"></div>
+          </div>
+        </div>
+
+        <div class="small text-muted mb-3">
+          <strong>Identified Competencies:</strong>
+          <div class="mt-2">
+            {% for s in latest_resume.extracted_information.get('skills', [])[:8] %}
+            <span class="skill-badge matched">{{ s }}</span>
+            {% endfor %}
+            {% if latest_resume.extracted_information.get('skills', [])|length > 8 %}
+            <span class="badge bg-light text-muted border">+{{ latest_resume.extracted_information.get('skills', [])|length - 8 }} more</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="d-grid gap-2">
+          <a href="{{ url_for('resume.view', resume_id=latest_resume.id) }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-eye me-1"></i> Review Extracted Resume Data
+          </a>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-file-earmark-arrow-up fs-1 opacity-50 mb-2"></i>
+          <p class="mb-3">No resume uploaded to your account.</p>
+          <a href="{{ url_for('resume.upload') }}" class="btn btn-primary btn-sm">Upload Your First Resume</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Section: Recent Analyses & Recommended Jobs -->
+<div class="row g-4">
+  <!-- Recent Analyses Table -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-clock-history text-secondary me-2"></i>Recent Match Reports</span>
+        <a href="{{ url_for('jobs.history') }}" class="small text-decoration-none">View All &rarr;</a>
+      </div>
+      <div class="card-body p-0">
+        {% if recent_analyses %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small text-muted">
+              <tr>
+                <th>Job Role</th>
+                <th>Company</th>
+                <th>Score</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in recent_analyses %}
+              <tr>
+                <td>
+                  <div class="fw-semibold text-dark">{{ a.job.title }}</div>
+                  <div class="text-muted small" style="font-size: 0.72rem;">{{ a.created_at.strftime('%b %d, %Y') }}</div>
+                </td>
+                <td class="small text-secondary">{{ a.job.company }}</td>
+                <td>
+                  <span class="badge {% if a.overall_score >= 80 %}bg-success{% elif a.overall_score >= 60 %}bg-primary{% elif a.overall_score >= 45 %}bg-warning{% else %}bg-danger{% endif %}">
+                    {{ a.overall_score|round(0)|int }}%
+                  </span>
+                </td>
+                <td class="text-end">
+                  <a href="{{ url_for('jobs.analysis_result', analysis_id=a.id) }}" class="btn btn-sm btn-outline-primary py-0 px-2">
+                    Report
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted small">
+          No matches evaluated yet. Run a job match to view compatibility breakdowns.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recommended Jobs -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-stars text-warning me-2"></i>Top Job Recommendations</span>
+        <a href="{{ url_for('jobs.recommendations') }}" class="small text-decoration-none">Explore All &rarr;</a>
+      </div>
+      <div class="card-body p-0">
+        {% if top_recommendations %}
+        <div class="list-group list-group-flush">
+          {% for r in top_recommendations %}
+          <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+            <div>
+              <div class="fw-semibold text-dark">{{ r.job.title }}</div>
+              <div class="small text-muted">{{ r.job.company }} &bull; {{ r.job.location }}</div>
+              <div class="mt-1">
+                {% for m in r.matching_skills[:3] %}
+                <span class="badge bg-success-subtle text-success me-1">{{ m }}</span>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="text-end">
+              <span class="badge {% if r.overall_score >= 80 %}bg-success{% elif r.overall_score >= 60 %}bg-primary{% else %}bg-warning{% endif %} fs-6 mb-1">
+                {{ r.overall_score|round(0)|int }}%
+              </span>
+              <div>
+                <a href="{{ url_for('jobs.view_job', job_id=r.job.id) }}" class="small text-decoration-none">Details</a>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted small">
+          Upload a resume to generate ranked recommendations for your skillset.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if skills_count > 0 %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const ctx = document.getElementById('skillCategoryChart');
+    if (!ctx) return;
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: {{ chart_labels|tojson }},
+        datasets: [{
+          label: 'Skills Detected',
+          data: {{ chart_values|tojson }},
+          backgroundColor: [
+            'rgba(37, 99, 235, 0.8)',
+            'rgba(2, 132, 199, 0.8)',
+            'rgba(16, 185, 129, 0.8)',
+            'rgba(245, 158, 11, 0.8)',
+            'rgba(139, 92, 246, 0.8)',
+            'rgba(100, 116, 139, 0.8)'
+          ],
+          borderColor: [
+            '#2563eb',
+            '#0284c7',
+            '#10b981',
+            '#f59e0b',
+            '#8b5cf6',
+            '#64748b'
+          ],
+          borderWidth: 1,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0 }
+          }
+        }
+      }
+    });
+  });
+</script>
+{% endif %}
+{% endblock %}

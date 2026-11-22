@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Explore Jobs — JobHelper AI{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+  <div>
+    <h3 class="fw-bold mb-1"><i class="bi bi-briefcase text-primary me-2"></i>Job Listings & Roles</h3>
+    <p class="text-muted small mb-0">Browse available job descriptions or add custom postings for matching.</p>
+  </div>
+  <div class="d-flex gap-2 mt-3 mt-md-0">
+    <a href="{{ url_for('jobs.create') }}" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-plus-lg me-1"></i> Add Custom Job
+    </a>
+    <a href="{{ url_for('jobs.match') }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-bullseye me-1"></i> Match Resume
+    </a>
+  </div>
+</div>
+
+<!-- Search & Filter Card -->
+<div class="card p-3 mb-4 bg-light border">
+  <form method="GET" action="{{ url_for('jobs.index') }}" class="row g-2">
+    <div class="col-md-5">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+        <input type="text" name="q" class="form-control" placeholder="Search by role, company, or skills..." value="{{ query }}">
+      </div>
+    </div>
+    <div class="col-md-3">
+      <input type="text" name="location" class="form-control form-control-sm" placeholder="Location (e.g. Remote, NY)" value="{{ location }}">
+    </div>
+    <div class="col-md-2">
+      <select name="employment_type" class="form-select form-select-sm">
+        <option value="">All Employment Types</option>
+        <option value="Full-time" {{ 'selected' if emp_type == 'Full-time' }}>Full-time</option>
+        <option value="Part-time" {{ 'selected' if emp_type == 'Part-time' }}>Part-time</option>
+        <option value="Contract" {{ 'selected' if emp_type == 'Contract' }}>Contract</option>
+      </select>
+    </div>
+    <div class="col-md-2 d-grid">
+      <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+    </div>
+  </form>
+</div>
+
+<!-- Jobs Grid -->
+<div class="row g-3">
+  {% for job in jobs %}
+  <div class="col-md-6 col-lg-6">
+    <div class="card p-4 h-100 border d-flex flex-column justify-content-between">
+      <div>
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <h5 class="fw-bold mb-1">
+              <a href="{{ url_for('jobs.view_job', job_id=job.id) }}" class="text-dark text-decoration-none hover-primary">
+                {{ job.title }}
+              </a>
+            </h5>
+            <div class="text-muted small">
+              <i class="bi bi-building me-1"></i>{{ job.company }} &bull; 
+              <i class="bi bi-geo-alt me-1"></i>{{ job.location or 'Remote' }}
+            </div>
+          </div>
+          
+          <div class="d-flex align-items-center gap-1">
+            <span class="badge bg-primary-subtle text-primary">{{ job.employment_type }}</span>
+            {% if current_user.is_authenticated %}
+            <form method="POST" action="{{ url_for('jobs.toggle_save_job', job_id=job.id) }}" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-link text-decoration-none p-1" title="Save Job">
+                <i class="bi {{ 'bi-bookmark-fill text-warning' if job.id in saved_job_ids else 'bi-bookmark text-muted' }}"></i>
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+
+        <p class="text-secondary small line-clamp-3 mb-3">
+          {{ job.description[:180] }}{% if job.description|length > 180 %}...{% endif %}
+        </p>
+
+        <div class="mb-3">
+          <div class="small fw-semibold text-muted mb-1">Required Skills:</div>
+          <div>
+            {% for s in job.get_required_skills_list()[:5] %}
+            <span class="skill-badge">{{ s }}</span>
+            {% endfor %}
+            {% if job.get_required_skills_list()|length > 5 %}
+            <span class="badge bg-light text-muted border">+{{ job.get_required_skills_list()|length - 5 }}</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto">
+        <span class="small text-muted"><i class="bi bi-briefcase me-1"></i>{{ job.experience or 'Any Exp' }}</span>
+        <div class="d-flex gap-2">
+          <a href="{{ url_for('jobs.view_job', job_id=job.id) }}" class="btn btn-sm btn-outline-secondary">
+            View Details
+          </a>
+          {% if current_user.is_authenticated %}
+          <a href="{{ url_for('jobs.match', job_id=job.id) }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-bullseye me-1"></i> Match
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12 text-center py-5 text-muted">
+    <i class="bi bi-search fs-1 opacity-50 mb-2"></i>
+    <p class="mb-2">No jobs match your filter criteria.</p>
+    <a href="{{ url_for('jobs.index') }}" class="btn btn-sm btn-outline-primary">Reset Filters</a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

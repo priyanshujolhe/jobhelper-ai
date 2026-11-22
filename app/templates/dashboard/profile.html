@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile — JobHelper AI{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card p-4">
+      <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fs-3 fw-bold" style="width: 64px; height: 64px;">
+          {{ (current_user.name or current_user.email)[:1].upper() }}
+        </div>
+        <div>
+          <h4 class="fw-bold mb-0">{{ current_user.name or 'User Profile' }}</h4>
+          <div class="text-muted small">{{ current_user.email }} &bull; Verified Account</div>
+        </div>
+      </div>
+
+      <form method="POST" action="{{ url_for('dashboard.profile') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Full Name</label>
+            <input type="text" name="name" class="form-control" value="{{ current_user.name or '' }}" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Email Address (Read Only)</label>
+            <input type="email" class="form-control bg-light" value="{{ current_user.email }}" readonly>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Phone Number</label>
+            <input type="text" name="phone" class="form-control" value="{{ profile.phone or '' }}" placeholder="+1 (555) 000-0000">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Location / City</label>
+            <input type="text" name="location" class="form-control" value="{{ profile.location or '' }}" placeholder="San Francisco, CA or Remote">
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Professional Headline</label>
+            <input type="text" name="headline" class="form-control" value="{{ profile.headline or '' }}" placeholder="e.g. Senior Backend Engineer | Python & Distributed Systems">
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Professional Bio / Summary</label>
+            <textarea name="bio" class="form-control" rows="4">{{ profile.bio or '' }}</textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Education Notes</label>
+            <input type="text" name="education" class="form-control" value="{{ profile.education or '' }}" placeholder="Degree & University">
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Experience Notes</label>
+            <input type="text" name="experience" class="form-control" value="{{ profile.experience or '' }}" placeholder="Total years / target seniority">
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i> Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

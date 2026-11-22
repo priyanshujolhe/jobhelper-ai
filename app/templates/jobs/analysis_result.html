@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Match Report: {{ analysis.overall_score|round(0)|int }}% — JobHelper AI{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+  <div>
+    <div class="small text-muted mb-1"><a href="{{ url_for('jobs.match') }}" class="text-decoration-none">&larr; Run Another Match</a></div>
+    <h3 class="fw-bold mb-0">Job Compatibility Analysis</h3>
+    <div class="text-muted small">
+      <strong>Resume:</strong> {{ analysis.resume.original_filename }} &bull; 
+      <strong>Target:</strong> {{ analysis.job.title }} ({{ analysis.job.company }})
+    </div>
+  </div>
+  <div class="d-flex gap-2 mt-3 mt-md-0">
+    <a href="{{ url_for('jobs.history') }}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-clock-history me-1"></i> Analysis History
+    </a>
+    <a href="{{ url_for('builder.index') }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-pencil-square me-1"></i> Update in Resume Builder
+    </a>
+  </div>
+</div>
+
+<!-- Top Section: Score Circle & 4 Scoring Dimensions -->
+<div class="row g-4 mb-4">
+  <!-- Overall Compatibility Score Card -->
+  <div class="col-lg-4">
+    <div class="card p-4 text-center h-100 d-flex flex-column justify-content-center">
+      <div class="text-uppercase small fw-bold text-muted mb-2">Overall Match Score</div>
+
+      <div class="score-circle-container mb-2">
+        <div class="score-circle" style="--score: {{ analysis.overall_score }}; --score-color: {% if analysis.overall_score >= 80 %}#10b981{% elif analysis.overall_score >= 60 %}#2563eb{% elif analysis.overall_score >= 45 %}#f59e0b{% else %}#ef4444{% endif %};">
+          <div class="score-circle-inner">
+            <span class="score-number">{{ analysis.overall_score|round(0)|int }}</span>
+            <span class="score-unit">/ 100%</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <span class="badge {% if analysis.overall_score >= 80 %}bg-success{% elif analysis.overall_score >= 60 %}bg-primary{% elif analysis.overall_score >= 45 %}bg-warning{% else %}bg-danger{% endif %} fs-6 px-3 py-1 mb-2">
+          {{ analysis.match_category or 'Job Match' }}
+        </span>
+      </div>
+      <div class="small text-muted">
+        Analyzed on {{ analysis.created_at.strftime('%B %d, %Y at %H:%M') }}
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 Component Score Bars -->
+  <div class="col-lg-8">
+    <div class="card p-4 h-100">
+      <h5 class="fw-bold mb-3"><i class="bi bi-sliders text-primary me-2"></i>Scoring Model Breakdown</h5>
+      <p class="small text-muted mb-4">
+        Our multi-component scoring engine weights skills overlap, TF-IDF cosine similarity, experience depth, and education:
+      </p>
+
+      <div class="mb-3">
+        <div class="d-flex justify-content-between small mb-1">
+          <span class="fw-semibold text-dark"><i class="bi bi-tags text-primary me-1"></i>Skills Compatibility (Weight: 50%)</span>
+          <span class="fw-bold text-primary">{{ analysis.skills_score|round(1) }}%</span>
+        </div>
+        <div class="progress" style="height: 10px;">
+          <div class="progress-bar bg-primary" style="width: {{ analysis.skills_score }}%;"></div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="d-flex justify-content-between small mb-1">
+          <span class="fw-semibold text-dark"><i class="bi bi-vector-pen text-info me-1"></i>TF-IDF Text & Semantic Overlap (Weight: 25%)</span>
+          <span class="fw-bold text-info">{{ analysis.text_similarity|round(1) }}%</span>
+        </div>
+        <div class="progress" style="height: 10px;">
+          <div class="progress-bar bg-info" style="width: {{ analysis.text_similarity }}%;"></div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="d-flex justify-content-between small mb-1">
+          <span class="fw-semibold text-dark"><i class="bi bi-briefcase text-success me-1"></i>Experience Alignment (Weight: 15%)</span>
+          <span class="fw-bold text-success">{{ analysis.experience_score|round(1) }}%</span>
+        </div>
+        <div class="progress" style="height: 10px;">
+          <div class="progress-bar bg-success" style="width: {{ analysis.experience_score }}%;"></div>
+        </div>
+      </div>
+
+      <div class="mb-2">
+        <div class="d-flex justify-content-between small mb-1">
+          <span class="fw-semibold text-dark"><i class="bi bi-mortarboard text-warning me-1"></i>Education Credentials (Weight: 10%)</span>
+          <span class="fw-bold text-warning">{{ analysis.education_score|round(1) }}%</span>
+        </div>
+        <div class="progress" style="height: 10px;">
+          <div class="progress-bar bg-warning" style="width: {{ analysis.education_score }}%;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Skills Comparison: Matching vs Missing Skills -->
+<div class="row g-4 mb-4">
+  <!-- Matching Skills Card -->
+  <div class="col-lg-6">
+    <div class="card p-4 h-100 border-success border-opacity-25">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold text-success mb-0">
+          <i class="bi bi-check-circle-fill me-2"></i>Matching Skills ({{ analysis.matching_skills|length }})
+        </h5>
+        <span class="badge bg-success-subtle text-success">Satisfied</span>
+      </div>
+      <p class="small text-muted mb-3">Skills identified in your resume that fulfill the job's core requirements:</p>
+
+      <div>
+        {% for s in analysis.matching_skills %}
+        <span class="skill-badge matched"><i class="bi bi-check me-1"></i>{{ s }}</span>
+        {% else %}
+        <div class="text-muted small">No exact keyword skill matches found between resume and job description.</div>
+        {% endfor %}
+      </div>
+
+      {% if analysis.preferred_skills_found %}
+      <div class="mt-4 pt-3 border-top">
+        <h6 class="small fw-bold text-primary mb-2">Preferred / Bonus Skills Found:</h6>
+        <div>
+          {% for p in analysis.preferred_skills_found %}
+          <span class="skill-badge preferred"><i class="bi bi-star-fill text-warning me-1"></i>{{ p }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Missing Required Skills Card -->
+  <div class="col-lg-6">
+    <div class="card p-4 h-100 border-danger border-opacity-25">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold text-danger mb-0">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>Missing Skills ({{ analysis.missing_skills|length }})
+        </h5>
+        <span class="badge bg-danger-subtle text-danger">Action Required</span>
+      </div>
+      <p class="small text-muted mb-3">Prerequisites listed in the job description that were not detected in your resume:</p>
+
+      <div>
+        {% for s in analysis.missing_skills %}
+        <span class="skill-badge missing"><i class="bi bi-x me-1"></i>{{ s }}</span>
+        {% else %}
+        <div class="p-3 bg-success-subtle text-success rounded small">
+          <i class="bi bi-check-circle-fill me-2"></i>Zero missing skills! You satisfy all stated technical requirements.
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if analysis.missing_skills %}
+      <div class="mt-4 pt-3 border-top">
+        <h6 class="small fw-bold text-secondary mb-2">How to Bridge the Gap:</h6>
+        <p class="small text-muted mb-0">
+          If you have experience with any of these tools, add them to your resume project bullet points or build a demonstration project on GitHub.
+        </p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Actionable Improvement Recommendations -->
+<div class="card p-4 mb-4">
+  <h5 class="fw-bold mb-3"><i class="bi bi-lightbulb-fill text-warning me-2"></i>Actionable Improvement Guidance</h5>
+  <div class="list-group list-group-flush">
+    {% for r in analysis.recommendations %}
+    <div class="list-group-item px-0 py-2 d-flex align-items-start">
+      <i class="bi bi-arrow-right-circle-fill text-primary me-3 fs-5 mt-1"></i>
+      <div class="small text-secondary fw-semibold">{{ r }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Job Description Reference -->
+<div class="card p-4 bg-light border">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h6 class="fw-bold text-dark mb-0">Target Position Reference</h6>
+    <a href="{{ url_for('jobs.view_job', job_id=analysis.job.id) }}" class="small text-decoration-none">View Full Posting &rarr;</a>
+  </div>
+  <p class="small text-muted mb-0 line-clamp-3">{{ analysis.job.description }}</p>
+</div>
+{% endblock %}

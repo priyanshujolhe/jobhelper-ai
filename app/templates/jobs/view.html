@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}{{ job.title }} at {{ job.company }} — JobHelper AI{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{{ url_for('jobs.index') }}" class="small text-muted text-decoration-none">&larr; Back to Job Listings</a>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card p-4 mb-4">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <h3 class="fw-bold mb-1">{{ job.title }}</h3>
+          <div class="text-muted">
+            <span class="fw-semibold text-dark">{{ job.company }}</span> &bull; 
+            <i class="bi bi-geo-alt me-1"></i>{{ job.location or 'Remote' }} &bull;
+            <span class="badge bg-primary-subtle text-primary">{{ job.employment_type }}</span>
+          </div>
+        </div>
+
+        {% if current_user.is_authenticated %}
+        <form method="POST" action="{{ url_for('jobs.toggle_save_job', job_id=job.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-outline-warning btn-sm">
+            <i class="bi {{ 'bi-bookmark-fill' if is_saved else 'bi-bookmark' }} me-1"></i>
+            {{ 'Saved' if is_saved else 'Bookmark Job' }}
+          </button>
+        </form>
+        {% endif %}
+      </div>
+
+      <div class="border-top pt-3 mb-4">
+        <h6 class="fw-bold text-dark mb-2">Job Description & Responsibilities</h6>
+        <div class="text-secondary small" style="white-space: pre-line; line-height: 1.7;">
+          {{ job.description }}
+        </div>
+      </div>
+
+      <div class="border-top pt-3 mb-3">
+        <h6 class="fw-bold text-dark mb-2">Required Skills</h6>
+        <div>
+          {% for s in job.get_required_skills_list() %}
+          <span class="skill-badge matched">{{ s }}</span>
+          {% else %}
+          <span class="text-muted small">None specifically designated.</span>
+          {% endfor %}
+        </div>
+      </div>
+
+      {% if job.preferred_skills %}
+      <div class="border-top pt-3 mb-3">
+        <h6 class="fw-bold text-dark mb-2">Preferred / Nice-to-Have Skills</h6>
+        <div>
+          {% for s in job.get_preferred_skills_list() %}
+          <span class="skill-badge preferred">{{ s }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if job.user_id == current_user.id %}
+      <div class="pt-3 border-top mt-3 text-end">
+        <form method="POST" action="{{ url_for('jobs.delete_job', job_id=job.id) }}" onsubmit="return confirm('Are you sure you want to delete this custom job posting?');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-sm btn-outline-danger">
+            <i class="bi bi-trash me-1"></i> Delete This Job
+          </button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Right Column: Match CTA -->
+  <div class="col-lg-4">
+    <div class="card p-4 bg-light border mb-4">
+      <h5 class="fw-bold mb-2"><i class="bi bi-bullseye text-primary me-2"></i>Match Your Resume</h5>
+      <p class="small text-muted mb-3">
+        Compare this position against your parsed resume to calculate compatibility, matching skills, and missing skills.
+      </p>
+
+      {% if current_user.is_authenticated %}
+        {% if resumes %}
+        <form method="POST" action="{{ url_for('jobs.match') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="job_source" value="existing">
+          <input type="hidden" name="job_id" value="{{ job.id }}">
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Select Resume:</label>
+            <select name="resume_id" class="form-select form-select-sm" required>
+              {% for r in resumes %}
+              <option value="{{ r.id }}">{{ r.original_filename }} ({{ r.uploaded_at.strftime('%b %d') }})</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary btn-sm fw-semibold">
+              <i class="bi bi-magic me-1"></i> Analyze Match Now
+            </button>
+          </div>
+        </form>
+        {% else %}
+        <div class="text-center py-2">
+          <p class="small text-muted mb-2">You haven't uploaded a resume yet.</p>
+          <a href="{{ url_for('resume.upload') }}" class="btn btn-sm btn-primary w-100">Upload Resume First</a>
+        </div>
+        {% endif %}
+      {% else %}
+        <div class="text-center py-2">
+          <p class="small text-muted mb-2">Sign in to match your resume against this job posting.</p>
+          <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-primary w-100">Sign In with OTP</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Job Details Quick List -->
+    <div class="card p-4">
+      <h6 class="fw-bold mb-3">Overview</h6>
+      <ul class="list-unstyled small mb-0">
+        <li class="d-flex justify-content-between py-2 border-bottom">
+          <span class="text-muted">Experience Level:</span>
+          <span class="fw-bold">{{ job.experience or 'Not specified' }}</span>
+        </li>
+        <li class="d-flex justify-content-between py-2 border-bottom">
+          <span class="text-muted">Employment Type:</span>
+          <span class="fw-bold">{{ job.employment_type }}</span>
+        </li>
+        <li class="d-flex justify-content-between py-2 border-bottom">
+          <span class="text-muted">Location:</span>
+          <span class="fw-bold">{{ job.location }}</span>
+        </li>
+        <li class="d-flex justify-content-between py-2">
+          <span class="text-muted">Posting Type:</span>
+          <span class="badge bg-secondary-subtle text-secondary">{{ 'Sample Role' if job.is_sample else 'User Added' }}</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

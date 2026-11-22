@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Resume Builder — JobHelper AI{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+  <div>
+    <h3 class="fw-bold mb-1"><i class="bi bi-pencil-square text-primary me-2"></i>Professional Resume Builder</h3>
+    <p class="text-muted small mb-0">Craft, edit, and export PDF resumes across multiple professional styles.</p>
+  </div>
+</div>
+
+<form method="POST" action="{{ url_for('builder.download_pdf') }}" id="resumeBuilderForm">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <div class="row g-4">
+    <!-- Left Column: Form Inputs -->
+    <div class="col-lg-8">
+      
+      <!-- Template Selection Card -->
+      <div class="card p-4 mb-4">
+        <h5 class="fw-bold mb-3"><i class="bi bi-palette text-primary me-2"></i>Choose Resume Template</h5>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <input type="radio" class="btn-check" name="template" id="tplModern" value="modern" checked>
+            <label class="btn btn-outline-primary p-3 w-100 text-start h-100" for="tplModern">
+              <div class="fw-bold"><i class="bi bi-layout-sidebar-inset me-1"></i> Modern Clean</div>
+              <div class="small text-muted mt-1">Deep blue accents, clean structure, ideal for modern tech roles.</div>
+            </label>
+          </div>
+
+          <div class="col-md-4">
+            <input type="radio" class="btn-check" name="template" id="tplClassic" value="classic">
+            <label class="btn btn-outline-secondary p-3 w-100 text-start h-100" for="tplClassic">
+              <div class="fw-bold"><i class="bi bi-card-heading me-1"></i> Classic Formal</div>
+              <div class="small text-muted mt-1">Centered layout, traditional serif typography, executive styling.</div>
+            </label>
+          </div>
+
+          <div class="col-md-4">
+            <input type="radio" class="btn-check" name="template" id="tplMinimal" value="minimalist">
+            <label class="btn btn-outline-dark p-3 w-100 text-start h-100" for="tplMinimal">
+              <div class="fw-bold"><i class="bi bi-code-square me-1"></i> Tech Minimalist</div>
+              <div class="small text-muted mt-1">Monospace accents, high information density, engineer focused.</div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Personal Info Card -->
+      <div class="card p-4 mb-4">
+        <h5 class="fw-bold mb-3"><i class="bi bi-person text-primary me-2"></i>Personal & Contact Details</h5>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Full Name *</label>
+            <input type="text" name="full_name" class="form-control" value="{{ data.full_name }}" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Professional Headline</label>
+            <input type="text" name="headline" class="form-control" value="{{ data.headline }}" placeholder="e.g. Senior Software Engineer">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Email Address *</label>
+            <input type="email" name="email" class="form-control" value="{{ data.email }}" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Phone Number</label>
+            <input type="text" name="phone" class="form-control" value="{{ data.phone }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Location / City</label>
+            <input type="text" name="location" class="form-control" value="{{ data.location }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">LinkedIn Profile URL</label>
+            <input type="text" name="linkedin" class="form-control" value="{{ data.linkedin }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">GitHub Profile URL</label>
+            <input type="text" name="github" class="form-control" value="{{ data.github }}">
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Professional Summary</label>
+            <textarea name="summary" class="form-control" rows="3" placeholder="Brief 2-3 sentence overview of your background, core strengths, and career achievements.">{{ data.summary }}</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skills Card -->
+      <div class="card p-4 mb-4">
+        <h5 class="fw-bold mb-3"><i class="bi bi-tags text-primary me-2"></i>Technical & Core Skills</h5>
+        <div>
+          <label class="form-label small fw-semibold">Skills (Comma-separated)</label>
+          <textarea name="skills" class="form-control" rows="2" placeholder="Python, Flask, JavaScript, React, PostgreSQL, Docker, Git, Machine Learning">{{ data.skills }}</textarea>
+          <div class="form-text small">Enter key technical skills, libraries, databases, and frameworks separated by commas.</div>
+        </div>
+      </div>
+
+      <!-- Work Experience Card -->
+      <div class="card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold mb-0"><i class="bi bi-briefcase text-primary me-2"></i>Work Experience</h5>
+          <button type="button" class="btn btn-sm btn-outline-primary" onclick="window.addExperienceRow()">
+            <i class="bi bi-plus-lg me-1"></i> Add Position
+          </button>
+        </div>
+        <div id="experienceList">
+          <!-- Rows dynamically added or populated -->
+        </div>
+      </div>
+
+      <!-- Projects Card -->
+      <div class="card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold mb-0"><i class="bi bi-code-slash text-primary me-2"></i>Key Projects</h5>
+          <button type="button" class="btn btn-sm btn-outline-primary" onclick="window.addProjectRow()">
+            <i class="bi bi-plus-lg me-1"></i> Add Project
+          </button>
+        </div>
+        <div id="projectsList">
+          <!-- Project rows dynamically added -->
+        </div>
+      </div>
+
+      <!-- Education Card -->
+      <div class="card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold mb-0"><i class="bi bi-mortarboard text-primary me-2"></i>Education Credentials</h5>
+          <button type="button" class="btn btn-sm btn-outline-primary" onclick="window.addEducationRow()">
+            <i class="bi bi-plus-lg me-1"></i> Add Degree
+          </button>
+        </div>
+        <div id="educationList">
+          <!-- Education rows dynamically added -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Actions Sticky Card -->
+    <div class="col-lg-4">
+      <div class="card p-4 shadow-sm sticky-top" style="top: 80px;">
+        <h5 class="fw-bold mb-3"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Export & Preview</h5>
+        <p class="small text-muted mb-4">
+          Generate an ATS-friendly, clean vector PDF compiled directly using ReportLab.
+        </p>
+
+        <div class="d-grid gap-2 mb-3">
+          <button type="submit" class="btn btn-primary fw-semibold py-2">
+            <i class="bi bi-download me-2"></i>Download PDF Resume
+          </button>
+          
+          <button type="submit" class="btn btn-outline-secondary btn-sm" formaction="{{ url_for('builder.preview') }}" formtarget="_blank">
+            <i class="bi bi-eye me-1"></i> Preview HTML Layout
+          </button>
+        </div>
+
+        <div class="p-3 bg-light rounded border small text-muted">
+          <div class="fw-bold text-dark mb-1"><i class="bi bi-lightbulb text-warning me-1"></i>Pro Tip</div>
+          Use bullet points with measurable impact (e.g. "Improved query performance by 40%").
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Populate an initial position, project, and education row if lists are empty
+    if (document.querySelectorAll("#experienceList .item-row").length === 0) {
+      window.addExperienceRow();
+    }
+    if (document.querySelectorAll("#projectsList .item-row").length === 0) {
+      window.addProjectRow();
+    }
+    if (document.querySelectorAll("#educationList .item-row").length === 0) {
+      window.addEducationRow();
+    }
+  });
+</script>
+{% endblock %}

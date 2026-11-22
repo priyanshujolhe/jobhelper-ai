@@ -1,0 +1,322 @@
+/* JobHelper AI — Core Custom Stylesheet */
+:root {
+  --primary-navy: #0f172a;
+  --primary-blue: #2563eb;
+  --primary-blue-hover: #1d4ed8;
+  --accent-cyan: #0284c7;
+  --accent-sky: #38bdf8;
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --text-dark: #0f172a;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --border-radius: 12px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-dark);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Navbar */
+.navbar-brand {
+  font-weight: 800;
+  font-size: 1.35rem;
+  color: var(--primary-navy) !important;
+  letter-spacing: -0.5px;
+}
+.navbar-brand span {
+  color: var(--primary-blue);
+}
+
+.brand-badge {
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--primary-blue);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* Sidebar & Dashboard Layout */
+.app-container {
+  display: flex;
+  min-height: calc(100vh - 60px);
+}
+
+.app-sidebar {
+  width: 260px;
+  background: #ffffff;
+  border-right: 1px solid var(--border-color);
+  flex-shrink: 0;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-heading {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #94a3b8;
+  letter-spacing: 0.8px;
+  padding: 0 0.75rem 0.5rem;
+}
+
+.sidebar-nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.65rem 0.85rem;
+  color: #475569;
+  font-size: 0.92rem;
+  font-weight: 500;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.15s ease-in-out;
+}
+
+.sidebar-link i {
+  font-size: 1.1rem;
+  color: #64748b;
+  width: 20px;
+  text-align: center;
+}
+
+.sidebar-link:hover {
+  background: #f1f5f9;
+  color: var(--primary-blue);
+}
+
+.sidebar-link:hover i {
+  color: var(--primary-blue);
+}
+
+.sidebar-link.active {
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--primary-blue);
+  font-weight: 600;
+}
+
+.sidebar-link.active i {
+  color: var(--primary-blue);
+}
+
+.app-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+/* Cards */
+.card {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  background: var(--bg-card);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.card-header {
+  background: transparent;
+  border-bottom: 1px solid var(--border-color);
+  padding: 1.1rem 1.4rem;
+  font-weight: 700;
+}
+
+/* Stat Cards */
+.stat-card {
+  padding: 1.4rem;
+  border-radius: var(--border-radius);
+  background: #fff;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+}
+
+.stat-value {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--primary-navy);
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Badges */
+.skill-badge {
+  display: inline-block;
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.28rem 0.65rem;
+  border-radius: 6px;
+  margin: 3px;
+  transition: all 0.15s;
+}
+
+.skill-badge.matched {
+  background: #ecfdf5;
+  color: #065f46;
+  border-color: #a7f3d0;
+}
+
+.skill-badge.missing {
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.skill-badge.preferred {
+  background: #eff6ff;
+  color: #1e40af;
+  border-color: #bfdbfe;
+}
+
+/* Upload Dropzone */
+.upload-dropzone {
+  border: 2px dashed #cbd5e1;
+  background: #f8fafc;
+  border-radius: 14px;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upload-dropzone:hover, .upload-dropzone.dragover {
+  border-color: var(--primary-blue);
+  background: #f0f7ff;
+}
+
+.upload-icon {
+  font-size: 3rem;
+  color: var(--primary-blue);
+  margin-bottom: 1rem;
+}
+
+/* Score Circle Gauge */
+.score-circle-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.score-circle {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: conic-gradient(var(--score-color, #2563eb) calc(var(--score, 75) * 1%), #e2e8f0 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.score-circle-inner {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-number {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--primary-navy);
+  line-height: 1;
+}
+
+.score-unit {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--primary-blue);
+  border-color: var(--primary-blue);
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.55rem 1.2rem;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-blue-hover);
+  border-color: var(--primary-blue-hover);
+}
+
+.btn-outline-primary {
+  color: var(--primary-blue);
+  border-color: var(--primary-blue);
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--primary-blue);
+  border-color: var(--primary-blue);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 991px) {
+  .app-sidebar {
+    position: fixed;
+    top: 56px;
+    left: -270px;
+    height: calc(100vh - 56px);
+    z-index: 1050;
+    transition: left 0.3s ease;
+  }
+  .app-sidebar.show {
+    left: 0;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+  }
+  .app-content {
+    padding: 1.25rem;
+  }
+}

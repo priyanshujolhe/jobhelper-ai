@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis History — JobHelper AI{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+  <div>
+    <h3 class="fw-bold mb-1"><i class="bi bi-clock-history text-primary me-2"></i>Analysis History</h3>
+    <p class="text-muted small mb-0">Review, compare, and manage your past resume and job compatibility evaluations.</p>
+  </div>
+  <a href="{{ url_for('jobs.match') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg me-1"></i> New Match Analysis
+  </a>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <span class="fw-bold text-dark">Stored Reports ({{ analyses|length }})</span>
+  </div>
+  <div class="card-body p-0">
+    {% if analyses %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light small text-muted">
+          <tr>
+            <th>Date & Time</th>
+            <th>Candidate Resume</th>
+            <th>Target Position</th>
+            <th>Match Score</th>
+            <th>Skills Overlap</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in analyses %}
+          <tr>
+            <td class="small text-secondary">
+              {{ a.created_at.strftime('%b %d, %Y') }}<br>
+              <span class="text-muted" style="font-size: 0.72rem;">{{ a.created_at.strftime('%H:%M UTC') }}</span>
+            </td>
+            <td>
+              <div class="fw-semibold text-dark text-truncate" style="max-width: 180px;">
+                {{ a.resume.original_filename }}
+              </div>
+            </td>
+            <td>
+              <div class="fw-bold text-dark">{{ a.job.title }}</div>
+              <div class="text-muted small">{{ a.job.company }}</div>
+            </td>
+            <td>
+              <span class="badge {% if a.overall_score >= 80 %}bg-success{% elif a.overall_score >= 60 %}bg-primary{% elif a.overall_score >= 45 %}bg-warning{% else %}bg-danger{% endif %} fs-6">
+                {{ a.overall_score|round(0)|int }}%
+              </span>
+              <div class="small text-muted" style="font-size: 0.72rem;">{{ a.match_category }}</div>
+            </td>
+            <td>
+              <span class="badge bg-success-subtle text-success me-1">{{ a.matching_skills|length }} Matched</span>
+              <span class="badge bg-danger-subtle text-danger">{{ a.missing_skills|length }} Missing</span>
+            </td>
+            <td class="text-end">
+              <div class="btn-group btn-group-sm">
+                <a href="{{ url_for('jobs.analysis_result', analysis_id=a.id) }}" class="btn btn-outline-primary" title="Open Report">
+                  <i class="bi bi-eye"></i> Report
+                </a>
+                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteHistory{{ a.id }}" title="Delete Report">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+
+              <!-- Delete Modal -->
+              <div class="modal fade" id="deleteHistory{{ a.id }}" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content text-start">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Delete Analysis Record?</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                      Are you sure you want to remove this analysis report for <strong>{{ a.job.title }}</strong>? This action cannot be undone.
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                      <form method="POST" action="{{ url_for('jobs.delete_analysis', analysis_id=a.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-clock-history fs-1 opacity-50 mb-2"></i>
+      <p class="mb-3">No match history records yet.</p>
+      <a href="{{ url_for('jobs.match') }}" class="btn btn-primary btn-sm">Run Your First Match</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

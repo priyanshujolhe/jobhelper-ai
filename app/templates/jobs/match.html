@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Job Matcher — JobHelper AI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+  <div>
+    <h3 class="fw-bold mb-1"><i class="bi bi-bullseye text-primary me-2"></i>Job Compatibility Matcher</h3>
+    <p class="text-muted small mb-0">Select your resume and compare it against any job description using TF-IDF and NLP skill extraction.</p>
+  </div>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <div class="card p-4 shadow-sm">
+      <form method="POST" action="{{ url_for('jobs.match') }}" id="matchForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <!-- Step 1: Select Resume -->
+        <div class="mb-4 pb-3 border-bottom">
+          <label class="form-label fw-bold d-flex align-items-center text-dark">
+            <span class="badge bg-primary rounded-circle me-2 d-inline-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">1</span>
+            Select Candidate Resume
+          </label>
+          <select name="resume_id" class="form-select" required>
+            {% for r in resumes %}
+            <option value="{{ r.id }}" {{ 'selected' if preselect_resume_id == r.id or loop.first }}>
+              {{ r.original_filename }} — Uploaded {{ r.uploaded_at.strftime('%b %d, %Y') }} ({{ r.extracted_information.get('skills', [])|length }} skills identified)
+            </option>
+            {% endfor %}
+          </select>
+          <div class="form-text small">Want to use a different resume? <a href="{{ url_for('resume.upload') }}">Upload a new one here</a>.</div>
+        </div>
+
+        <!-- Step 2: Select Job Source (Radio Toggle) -->
+        <div class="mb-4">
+          <label class="form-label fw-bold d-flex align-items-center text-dark mb-3">
+            <span class="badge bg-primary rounded-circle me-2 d-inline-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">2</span>
+            Select Job Description Source
+          </label>
+
+          <div class="btn-group w-100 mb-3" role="group">
+            <input type="radio" class="btn-check" name="job_source" id="sourceExisting" value="existing" {{ 'checked' if not request.args.get('custom') else '' }} onchange="toggleJobSource()">
+            <label class="btn btn-outline-primary" for="sourceExisting">
+              <i class="bi bi-list-task me-1"></i> Choose from Database Jobs ({{ jobs|length }} Available)
+            </label>
+
+            <input type="radio" class="btn-check" name="job_source" id="sourceCustom" value="custom" {{ 'checked' if request.args.get('custom') else '' }} onchange="toggleJobSource()">
+            <label class="btn btn-outline-primary" for="sourceCustom">
+              <i class="bi bi-clipboard-plus me-1"></i> Paste Custom Job Description
+            </label>
+          </div>
+
+          <!-- Existing Jobs Dropdown Container -->
+          <div id="existingJobContainer" class="p-3 bg-light rounded border mb-3">
+            <label class="form-label small fw-semibold">Target Job Role:</label>
+            <select name="job_id" class="form-select" id="jobSelect">
+              {% for j in jobs %}
+              <option value="{{ j.id }}" {{ 'selected' if preselect_job_id == j.id or loop.first }}>
+                {{ j.title }} — {{ j.company }} ({{ j.location or 'Remote' }})
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Custom Job Inputs Container -->
+          <div id="customJobContainer" class="p-3 bg-light rounded border mb-3 d-none">
+            <div class="row g-2 mb-2">
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Job Title</label>
+                <input type="text" name="custom_title" class="form-control form-control-sm" placeholder="e.g. Senior Backend Engineer">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Company Name</label>
+                <input type="text" name="custom_company" class="form-control form-control-sm" placeholder="e.g. Global Tech Labs">
+              </div>
+            </div>
+            <div class="mb-2">
+              <label class="form-label small fw-semibold">Paste Full Job Description *</label>
+              <textarea name="custom_description" id="customDescription" class="form-control form-control-sm" rows="6" placeholder="Paste the job description, required skills, and responsibilities here..."></textarea>
+            </div>
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Required Skills (Optional, comma-separated)</label>
+                <input type="text" name="custom_required_skills" class="form-control form-control-sm" placeholder="e.g. Python, SQL, REST API (leave blank to auto-detect)">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Preferred Skills (Optional)</label>
+                <input type="text" name="custom_preferred_skills" class="form-control form-control-sm" placeholder="e.g. Docker, AWS, Redis">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-grid pt-2">
+          <button type="submit" class="btn btn-primary btn-lg fw-semibold" id="runMatchBtn">
+            <i class="bi bi-cpu-fill me-2"></i>Run AI Matching Algorithm
+          </button>
+        </div>
+      </form>
+
+      <div id="matchingSpinner" class="d-none text-center py-4">
+        <div class="spinner-border text-primary" role="status"></div>
+        <div class="small text-muted mt-2">Computing TF-IDF vectors, cosine similarity & taxonomy overlap...</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  function toggleJobSource() {
+    const isCustom = document.getElementById("sourceCustom").checked;
+    const existingContainer = document.getElementById("existingJobContainer");
+    const customContainer = document.getElementById("customJobContainer");
+    const customDesc = document.getElementById("customDescription");
+
+    if (isCustom) {
+      existingContainer.classList.add("d-none");
+      customContainer.classList.remove("d-none");
+      customDesc.required = true;
+    } else {
+      existingContainer.classList.remove("d-none");
+      customContainer.classList.add("d-none");
+      customDesc.required = false;
+    }
+  }
+
+  document.getElementById("matchForm").addEventListener("submit", function () {
+    const btn = document.getElementById("runMatchBtn");
+    const spinner = document.getElementById("matchingSpinner");
+    if (btn) btn.disabled = true;
+    if (spinner) spinner.classList.remove("d-none");
+  });
+</script>
+{% endblock %}

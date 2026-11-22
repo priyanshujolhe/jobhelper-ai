@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}JobHelper — AI Resume Analyzer & Job Matcher{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="py-5 bg-white border-bottom position-relative overflow-hidden">
+  <div class="container py-lg-4">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-7">
+        <div class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill mb-3 fw-bold">
+          <i class="bi bi-stars me-1"></i> AI & NLP Powered Recruitment Intelligence
+        </div>
+        <h1 class="display-4 fw-extrabold text-dark tracking-tight mb-3">
+          Smarter Resume Screening. <br>
+          <span class="text-primary">Data-Driven Career Matching.</span>
+        </h1>
+        <p class="lead text-secondary mb-4">
+          JobHelper automates resume parsing, skill taxonomy extraction, TF-IDF text similarity, and missing skill detection to evaluate job compatibility with complete mathematical explainability.
+        </p>
+
+        <div class="d-flex flex-wrap gap-3 mb-4">
+          {% if current_user.is_authenticated %}
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary btn-lg px-4 shadow-sm">
+              <i class="bi bi-speedometer2 me-2"></i>Go to Your Dashboard
+            </a>
+            <a href="{{ url_for('resume.upload') }}" class="btn btn-outline-secondary btn-lg px-4">
+              <i class="bi bi-upload me-2"></i>Upload Resume
+            </a>
+          {% else %}
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg px-4 shadow-sm">
+              <i class="bi bi-person-check-fill me-2"></i>Get Started with Email OTP
+            </a>
+            <a href="{{ url_for('jobs.index') }}" class="btn btn-outline-secondary btn-lg px-4">
+              <i class="bi bi-search me-2"></i>Browse Sample Jobs
+            </a>
+          {% endif %}
+        </div>
+
+        <div class="row g-3 pt-3 border-top text-secondary small">
+          <div class="col-auto d-flex align-items-center">
+            <i class="bi bi-shield-check text-success fs-5 me-2"></i>
+            <span>Real Email OTP Auth</span>
+          </div>
+          <div class="col-auto d-flex align-items-center">
+            <i class="bi bi-cpu text-primary fs-5 me-2"></i>
+            <span>Scikit-learn TF-IDF</span>
+          </div>
+          <div class="col-auto d-flex align-items-center">
+            <i class="bi bi-code-square text-info fs-5 me-2"></i>
+            <span>Portfolio Generator</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-5">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-dark text-white">
+          <div class="card-header bg-dark border-secondary d-flex justify-content-between align-items-center py-3">
+            <div class="d-flex gap-2">
+              <div class="rounded-circle bg-danger" style="width: 10px; height: 10px;"></div>
+              <div class="rounded-circle bg-warning" style="width: 10px; height: 10px;"></div>
+              <div class="rounded-circle bg-success" style="width: 10px; height: 10px;"></div>
+            </div>
+            <span class="small text-secondary font-monospace">ML Matching Engine</span>
+          </div>
+          <div class="card-body p-4 font-monospace">
+            <div class="mb-3">
+              <span class="text-info">> Analyzing candidate resume...</span><br>
+              <span class="text-success">✔ PDF text extracted (842 words)</span><br>
+              <span class="text-success">✔ Skills matched: Python, Flask, SQL, REST API</span><br>
+              <span class="text-warning">! Missing required: Docker, Redis</span>
+            </div>
+            <div class="bg-secondary bg-opacity-25 p-3 rounded-3 mb-3">
+              <div class="d-flex justify-content-between small mb-1">
+                <span>Weighted Compatibility Score</span>
+                <span class="text-info fw-bold">82.5% (Excellent)</span>
+              </div>
+              <div class="progress" style="height: 8px;">
+                <div class="progress-bar bg-info" style="width: 82.5%;"></div>
+              </div>
+            </div>
+            <div class="small text-secondary">
+              Weights: Skills (50%), TF-IDF (25%), Experience (15%), Education (10%)
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- System Architecture Flowchart Section -->
+<section class="py-5 bg-light">
+  <div class="container py-lg-4">
+    <div class="text-center max-w-700 mx-auto mb-5">
+      <h6 class="text-primary text-uppercase fw-bold letter-spacing-1">Capstone Architecture</h6>
+      <h2 class="fw-bold">How JobHelper Works End-to-End</h2>
+      <p class="text-muted">A modular, transparent pipeline transforming raw documents into actionable career analytics.</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+      <div class="col-md-4 col-lg-2 text-center">
+        <div class="p-3 bg-white rounded-3 shadow-sm h-100 border">
+          <div class="rounded-circle bg-primary-subtle text-primary mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+            <i class="bi bi-file-earmark-arrow-up fs-4"></i>
+          </div>
+          <h6 class="fw-bold mb-1">1. User Upload</h6>
+          <p class="small text-muted mb-0">PDF/DOCX resume file & target job criteria</p>
+        </div>
+      </div>
+
+      <div class="col-md-4 col-lg-2 text-center">
+        <div class="p-3 bg-white rounded-3 shadow-sm h-100 border">
+          <div class="rounded-circle bg-info-subtle text-info mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+            <i class="bi bi-body-text fs-4"></i>
+          </div>
+          <h6 class="fw-bold mb-1">2. NLP Parsing</h6>
+          <p class="small text-muted mb-0">PyPDF/python-docx tokenization & normalization</p>
+        </div>
+      </div>
+
+      <div class="col-md-4 col-lg-2 text-center">
+        <div class="p-3 bg-white rounded-3 shadow-sm h-100 border">
+          <div class="rounded-circle bg-warning-subtle text-warning mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+            <i class="bi bi-tag fs-4"></i>
+          </div>
+          <h6 class="fw-bold mb-1">3. Skill Extraction</h6>
+          <p class="small text-muted mb-0">Taxonomy matching for tech & soft competencies</p>
+        </div>
+      </div>
+
+      <div class="col-md-4 col-lg-2 text-center">
+        <div class="p-3 bg-white rounded-3 shadow-sm h-100 border">
+          <div class="rounded-circle bg-success-subtle text-success mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+            <i class="bi bi-vector-pen fs-4"></i>
+          </div>
+          <h6 class="fw-bold mb-1">4. TF-IDF Vectors</h6>
+          <p class="small text-muted mb-0">Scikit-learn n-grams & Cosine Similarity</p>
+        </div>
+      </div>
+
+      <div class="col-md-4 col-lg-2 text-center">
+        <div class="p-3 bg-white rounded-3 shadow-sm h-100 border">
+          <div class="rounded-circle bg-danger-subtle text-danger mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+            <i class="bi bi-pie-chart fs-4"></i>
+          </div>
+          <h6 class="fw-bold mb-1">5. Weighted Score</h6>
+          <p class="small text-muted mb-0">Multi-component composite score & gap report</p>
+        </div>
+      </div>
+
+      <div class="col-md-4 col-lg-2 text-center">
+        <div class="p-3 bg-white rounded-3 shadow-sm h-100 border">
+          <div class="rounded-circle bg-primary-subtle text-primary mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+            <i class="bi bi-award fs-4"></i>
+          </div>
+          <h6 class="fw-bold mb-1">6. Builder & Portfolio</h6>
+          <p class="small text-muted mb-0">Download PDF resume & web portfolio ZIP</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Core Features Section -->
+<section class="py-5 bg-white">
+  <div class="container py-lg-4">
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card h-100 p-4 border rounded-3">
+          <div class="rounded-3 bg-primary-subtle text-primary p-3 mb-3 d-inline-block" style="width: fit-content;">
+            <i class="bi bi-patch-check fs-3"></i>
+          </div>
+          <h5 class="fw-bold">Explainable Matching Algorithm</h5>
+          <p class="text-muted small">
+            No black-box or random scores. The engine evaluates skills overlap (50%), TF-IDF cosine similarity (25%), experience level (15%), and degree credentials (10%).
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100 p-4 border rounded-3">
+          <div class="rounded-3 bg-danger-subtle text-danger p-3 mb-3 d-inline-block" style="width: fit-content;">
+            <i class="bi bi-exclamation-triangle fs-3"></i>
+          </div>
+          <h5 class="fw-bold">Missing Skill Detection</h5>
+          <p class="text-muted small">
+            Immediately discovers critical gaps between candidate qualifications and job prerequisites, providing targeted upskilling recommendations.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100 p-4 border rounded-3">
+          <div class="rounded-3 bg-success-subtle text-success p-3 mb-3 d-inline-block" style="width: fit-content;">
+            <i class="bi bi-file-earmark-check fs-3"></i>
+          </div>
+          <h5 class="fw-bold">Resume Quality Analyzer</h5>
+          <p class="text-muted small">
+            Evaluates quantifiable achievements, strong action verbs, section completeness, contact details, and document length across a transparent 100-point scale.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100 p-4 border rounded-3">
+          <div class="rounded-3 bg-info-subtle text-info p-3 mb-3 d-inline-block" style="width: fit-content;">
+            <i class="bi bi-briefcase fs-3"></i>
+          </div>
+          <h5 class="fw-bold">Smart Job Recommendations</h5>
+          <p class="text-muted small">
+            Ranks all available listings based on real compatibility with the candidate's parsed background, enabling targeted filtering by location, role, and match tier.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100 p-4 border rounded-3">
+          <div class="rounded-3 bg-warning-subtle text-warning p-3 mb-3 d-inline-block" style="width: fit-content;">
+            <i class="bi bi-file-pdf fs-3"></i>
+          </div>
+          <h5 class="fw-bold">Resume Builder Module</h5>
+          <p class="text-muted small">
+            Assemble high-impact resumes with live multi-template switching (Modern Clean, Classic Formal, Tech Minimalist) and direct ReportLab PDF export.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100 p-4 border rounded-3">
+          <div class="rounded-3 bg-purple-subtle text-primary p-3 mb-3 d-inline-block" style="width: fit-content;">
+            <i class="bi bi-window-sidebar fs-3"></i>
+          </div>
+          <h5 class="fw-bold">Portfolio Website Generator</h5>
+          <p class="text-muted small">
+            Instantly turns resume data into a production-ready personal website bundle (HTML/CSS/JS) packaged in a downloadable ZIP ready for GitHub Pages or Netlify.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Sample Jobs Section -->
+<section class="py-5 bg-light border-top">
+  <div class="container py-lg-4">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+      <div>
+        <h6 class="text-primary text-uppercase fw-bold">Live Opportunities</h6>
+        <h3 class="fw-bold mb-0">Explore Featured Positions</h3>
+      </div>
+      <a href="{{ url_for('jobs.index') }}" class="btn btn-outline-primary btn-sm">View All Jobs <i class="bi bi-arrow-right ms-1"></i></a>
+    </div>
+
+    <div class="row g-3">
+      {% for job in featured_jobs %}
+      <div class="col-md-6">
+        <div class="card p-3 border h-100">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <h5 class="fw-bold mb-1">{{ job.title }}</h5>
+              <div class="text-muted small"><i class="bi bi-building me-1"></i>{{ job.company }} &bull; <i class="bi bi-geo-alt me-1"></i>{{ job.location }}</div>
+            </div>
+            <span class="badge bg-primary-subtle text-primary">{{ job.employment_type }}</span>
+          </div>
+          <p class="text-muted small text-truncate mb-3">{{ job.description }}</p>
+          <div class="d-flex justify-content-between align-items-center mt-auto">
+            <div class="small">
+              <span class="fw-bold text-secondary">Key Skills:</span>
+              {% for s in job.get_required_skills_list()[:3] %}
+              <span class="badge bg-light text-dark border">{{ s }}</span>
+              {% endfor %}
+            </div>
+            <a href="{{ url_for('jobs.view_job', job_id=job.id) }}" class="btn btn-sm btn-outline-secondary">Details</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-primary text-white text-center">
+  <div class="container py-lg-4">
+    <h2 class="display-6 fw-bold mb-3">Ready to Analyze Your Resume?</h2>
+    <p class="lead opacity-75 mb-4 max-w-600 mx-auto">
+      Upload your PDF or DOCX file to get an instant match score, missing skills breakdown, and personalized recommendations.
+    </p>
+    {% if current_user.is_authenticated %}
+    <a href="{{ url_for('resume.upload') }}" class="btn btn-light btn-lg px-4 text-primary fw-bold shadow">
+      <i class="bi bi-cloud-arrow-up me-2"></i>Upload Your Resume Now
+    </a>
+    {% else %}
+    <a href="{{ url_for('auth.login') }}" class="btn btn-light btn-lg px-4 text-primary fw-bold shadow">
+      <i class="bi bi-envelope-check me-2"></i>Sign In with Email OTP
+    </a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

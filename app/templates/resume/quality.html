@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Resume Quality Audit — JobHelper AI{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+  <div>
+    <div class="small text-muted mb-1"><a href="{{ url_for('resume.view', resume_id=resume.id) }}" class="text-decoration-none">&larr; Back to Extracted Data</a></div>
+    <h3 class="fw-bold mb-0"><i class="bi bi-shield-check text-success me-2"></i>Resume Quality Audit</h3>
+    <div class="text-muted small">Document: {{ resume.original_filename }}</div>
+  </div>
+  <div class="d-flex gap-2 mt-3 mt-md-0">
+    <a href="{{ url_for('jobs.match', resume_id=resume.id) }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-bullseye me-1"></i> Match Against Jobs
+    </a>
+  </div>
+</div>
+
+<!-- Score Overview & Radar Chart Row -->
+<div class="row g-4 mb-4">
+  <!-- Big Score Card -->
+  <div class="col-lg-4">
+    <div class="card p-4 text-center h-100 d-flex flex-column justify-content-center">
+      <div class="text-uppercase small fw-bold text-muted mb-2">Overall Quality Index</div>
+      <div class="display-3 fw-extrabold {% if quality.total_score >= 80 %}text-success{% elif quality.total_score >= 60 %}text-primary{% else %}text-warning{% endif %} mb-1">
+        {{ quality.total_score|round(0)|int }}<span class="fs-4 text-muted">/100</span>
+      </div>
+      <div>
+        <span class="badge bg-{{ quality.grade_badge }} fs-6 px-3 py-1 mb-3">{{ quality.grade }}</span>
+      </div>
+      <p class="small text-muted mb-0">
+        Evaluated across contact completeness, technical skills, measurable outcomes, academic credentials, active verbs, and structural length.
+      </p>
+      <div class="alert alert-light border small text-muted text-start mt-4 mb-0">
+        <i class="bi bi-info-circle me-1 text-primary"></i>
+        <em>Note: This score is a heuristic quality benchmark for college project evaluation and career readiness; it does not guarantee hiring selection.</em>
+      </div>
+    </div>
+  </div>
+
+  <!-- Radar Chart Card -->
+  <div class="col-lg-8">
+    <div class="card p-4 h-100">
+      <h5 class="fw-bold mb-3"><i class="bi bi-pie-chart-fill text-primary me-2"></i>Multi-Dimensional Assessment</h5>
+      <div style="height: 280px;">
+        <canvas id="qualityRadarChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 6 Dimensional Breakdown Cards Grid -->
+<div class="row g-3 mb-4">
+  {% for key, item in quality.breakdown.items() %}
+  <div class="col-md-4">
+    <div class="card p-3 h-100 border">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="fw-semibold text-dark small">{{ item.label }}</span>
+        <span class="badge bg-primary-subtle text-primary">{{ item.score }} / {{ item.max }} pts</span>
+      </div>
+      <div class="progress" style="height: 6px;">
+        <div class="progress-bar bg-primary" style="width: {{ (item.score / item.max) * 100 }}%;"></div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Actionable Improvement Suggestions & Checklist -->
+<div class="row g-4 mb-4">
+  <!-- Suggestions -->
+  <div class="col-lg-6">
+    <div class="card p-4 h-100">
+      <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-lightbulb-fill text-warning me-2"></i>Actionable Improvement Suggestions</h5>
+      {% if quality.suggestions %}
+      <div class="list-group list-group-flush">
+        {% for s in quality.suggestions %}
+        <div class="list-group-item px-0 py-3 d-flex align-items-start">
+          <i class="bi bi-arrow-right-circle-fill text-primary me-3 fs-5 mt-1"></i>
+          <div>
+            <div class="text-dark small fw-semibold">{{ s }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="p-3 bg-success-subtle text-success rounded small">
+        <i class="bi bi-check-circle-fill me-2"></i>Outstanding! Your resume meets all evaluated quality benchmarks.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Checklist -->
+  <div class="col-lg-6">
+    <div class="card p-4 h-100">
+      <h5 class="fw-bold mb-3"><i class="bi bi-check2-square text-success me-2"></i>Completeness Checklist</h5>
+      <div class="list-group list-group-flush">
+        {% for c in quality.checklist %}
+        <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+          <span class="small text-secondary">{{ c.item }}</span>
+          {% if c.passed %}
+          <span class="badge bg-success-subtle text-success"><i class="bi bi-check-lg me-1"></i>Pass</span>
+          {% else %}
+          <span class="badge bg-danger-subtle text-danger"><i class="bi bi-x-lg me-1"></i>Needs Work</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Action Verbs & Metrics Found -->
+<div class="card p-4">
+  <div class="row g-4">
+    <div class="col-md-6 border-end">
+      <h6 class="fw-bold text-dark mb-2"><i class="bi bi-lightning-charge text-warning me-2"></i>Action Verbs Found ({{ quality.action_verbs_found|length }})</h6>
+      <div class="d-flex flex-wrap gap-1">
+        {% for v in quality.action_verbs_found %}
+        <span class="badge bg-light text-dark border">{{ v }}</span>
+        {% else %}
+        <span class="text-muted small">No strong action verbs identified.</span>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="col-md-6">
+      <h6 class="fw-bold text-dark mb-2"><i class="bi bi-calculator text-primary me-2"></i>Measurable Achievements Sample</h6>
+      <div class="d-flex flex-wrap gap-1">
+        {% for m in quality.metrics_found %}
+        <span class="badge bg-info-subtle text-info border border-info-subtle">{{ m }}</span>
+        {% else %}
+        <span class="text-muted small">No quantifiable percentage or numeric impacts identified.</span>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const ctx = document.getElementById('qualityRadarChart');
+    if (!ctx) return;
+
+    const breakdown = {{ quality.breakdown|tojson }};
+    const labels = [];
+    const scores = [];
+
+    for (const key in breakdown) {
+      labels.push(breakdown[key].label);
+      scores.push((breakdown[key].score / breakdown[key].max) * 100);
+    }
+
+    new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Fulfillment (%)',
+          data: scores,
+          backgroundColor: 'rgba(37, 99, 235, 0.2)',
+          borderColor: '#2563eb',
+          pointBackgroundColor: '#2563eb',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: '#2563eb'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          r: {
+            angleLines: { display: true },
+            suggestedMin: 0,
+            suggestedMax: 100,
+            ticks: { stepSize: 20 }
+          }
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}
